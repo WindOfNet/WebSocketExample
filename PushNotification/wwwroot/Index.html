@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <div>
+        <label>socket state: <span id="state">none</span></label>
+    </div>
+
+    <div>
+        <label>server time: <span id="time">none</span></label>
+    </div>
+
+    <div>
+        <button id="connect">Connect</button>
+        <button id="close">Close</button>
+    </div>
+
+    <script>        
+        document.getElementById('connect').onclick = function () {
+            var connect = new WebSocket("ws://" + window.location.host);
+
+            connect.onopen = function () {
+                document.getElementById('state').innerHTML = 'connected';
+            };
+            connect.onmessage = function (message) {
+                document.getElementById('time').innerHTML = message.data;
+            };
+            connect.onclose = function () {
+                document.getElementById('state').innerHTML = 'disconnect';
+            };
+            connect.onerror = function () {
+                document.getElementById('state').innerHTML = 'error';
+            };
+
+            document.getElementById('close').onclick = function () {
+                connect.close();
+            };
+        };
+    </script>
+</body>
+</html>
