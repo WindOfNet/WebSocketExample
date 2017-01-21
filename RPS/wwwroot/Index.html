@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html ng-app="app">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="/lib/angular/angular.js"></script>
+    <script>
+        var app = angular.module('app', []);
+        app.controller('body', function ($scope) {
+            $scope.id = '';
+            $scope.text = 'click connect button to build websocket';
+            $scope.isConnect = false;
+            $scope.gameOver = false;
+            $scope.disSendCard = true;
+
+            $scope.connect = function () {
+                if ($scope.isConnect) return;
+
+                $scope.connection = new WebSocket('ws://localhost:9000');
+                $scope.isConnect = true;
+
+                $scope.connection.onopen = function () { $scope.gameOver = false; $scope.$apply(); }
+                $scope.connection.onclose = function () { $scope.gameOver = true; $scope.$apply(); }
+                $scope.connection.onmessage = function (e) {
+                    var message = JSON.parse(e.data);
+                    console.log(message);
+                    switch (message.Type) {
+                        case 'Id':
+                            $scope.id = message.Message;
+                            break;
+                        case 'Info':
+                            $scope.text = message.Message;
+                            if (message.Message == '遊戲開始')
+                                $scope.disSendCard = false;
+                            $scope.$apply();
+                            break;
+                        case 'Result':
+                            var m = JSON.parse(message.Message);
+                            var resultStr;
+                            if (m.Win == null)
+                                resultStr = '平手';
+                            else
+                                if ($scope.id == m.Win)
+                                    resultStr = '你贏了';
+                                else
+                                    resultStr = '你輸了';
+
+                            var myCard = '';
+                            var anotherCard = '';
+                            if (m.Info[0].Id == $scope.id) {
+                                myCard = m.Info[0].Card;
+                                anotherCard = m.Info[1].Card;
+                            }
+                            else {
+                                myCard = m.Info[1].Card;
+                                anotherCard = m.Info[0].Card;
+                            }
+                            
+                            var parse = function(s) {
+                                switch (s) {
+                                    case 'Y': return '剪刀';
+                                    case 'O': return '石頭';
+                                    case 'W': return '布';
+                                }
+                            }
+                            $scope.text = '你出了 "' + parse(myCard) + '" , 對方出了 "' + parse(anotherCard) + '" ... ' + resultStr;
+                            if (m.Win != null) {
+                                $scope.gameOver = true;
+                                $scope.isConnect = false;
+                                $scope.disSendCard = true;
+                            }
+                            else
+                                $scope.disSendCard = false;
+                            $scope.$apply();
+                            break;
+                    }
+                }
+            }
+
+            $scope.disconnect = function () {
+                $scope.connection.close();
+                $scope.isConnect = false;
+            }
+
+            $scope.send = function (value) {
+                $scope.disSendCard = true;
+                $scope.connection.send(JSON.stringify({
+                    Type: 'SendCard',
+                    Message: value
+                }));
+            }
+        });
+    </script>
+</head>
+<body ng-controller="body">
+    <label ng-show="gameOver">遊戲結束</label>
+    <br />
+    <label>{{text}}</label>
+    <hr />
+    <button ng-hide="isConnect" ng-click="connect()">{{gameOver && 'Re' || 'Connect'}}</button>
+    <button ng-show="isConnect" ng-click="disconnect()">Disconnect</button>
+    <hr />
+    <button ng-disabled="disSendCard" ng-click="send('Y')">剪刀</button>
+    <button ng-disabled="disSendCard" ng-click="send('O')">石頭</button>
+    <button ng-disabled="disSendCard" ng-click="send('W')"> 布 </button>
+</body>
+</html>
