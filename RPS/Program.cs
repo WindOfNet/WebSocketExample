@@ -14,9 +14,9 @@ namespace RPS
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseUrls("http://*:9000")
                 .UseIISIntegration()
                 .UseStartup<Startup>()
-                .UseUrls("http://*:9000")
                 .Build();
 
             host.Run();
