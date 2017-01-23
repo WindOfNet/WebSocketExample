@@ -16,7 +16,7 @@
             $scope.connect = function () {
                 if ($scope.isConnect) return;
 
-                $scope.connection = new WebSocket('ws://localhost:9000');
+                $scope.connection = new WebSocket('ws://' + window.location.host);
                 $scope.isConnect = true;
 
                 $scope.connection.onopen = function () { $scope.gameOver = false; $scope.$apply(); }
