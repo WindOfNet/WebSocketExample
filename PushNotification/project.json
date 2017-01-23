@@ -9,7 +9,7 @@
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.1",
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Microsoft.AspNetCore.WebSockets": "1.0.0",
-    "Microsoft.AspNetCore.StaticFiles": "1.2.0-preview1-23063" },
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0" },
 
   "tools": {
     "Microsoft.AspNetCore.Server.IISIntegration.Tools": "1.0.0-preview2-final"
