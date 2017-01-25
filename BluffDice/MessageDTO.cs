@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 namespace BluffDice
 {
     public enum ClientMessageType { Roll, Bluff, Debluff }
-    public enum ToClientMessageType { Id, WaitRoll, RollResult, ApponentBluff, WaitBluff, BluffNotValid, BluffResult, PlayerLeave, WinResult }
+    public enum ToClientMessageType { Id, WaitRoll, RollResult, ApponentBluff, WaitBluff, BluffNotValid, BluffSuccess, PlayerLeave, WinResult }
 
     public class ClientMessage
     {

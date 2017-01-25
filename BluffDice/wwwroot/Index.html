@@ -51,6 +51,7 @@
                     if (message.CanRoll != null) $scope.canRoll = message.CanRoll;
                     if (message.CanBluff != null) $scope.canBluff = message.CanBluff;
                     if (message.CanDebluff != null) $scope.canDebluff = message.CanDebluff;
+                    $scope.$apply();
                     console.log(message);
                     switch (message.Type) {
                         case 'PlayerLeave':
@@ -83,9 +84,7 @@
                             $scope.text = '該你吹牛了';
                             $scope.$apply();
                             break;
-                        case 'BluffResult':
-                            $scope.$apply();
-                            break;
+                        case 'BluffSuccess': break;
                         case 'BluffNotValid':
                             $scope.bluffs.splice(-1, 1);
                             $scope.text = '無效的吹牛, 請重試';

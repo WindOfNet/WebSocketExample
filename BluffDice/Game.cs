@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ namespace BluffDice
 
         public static Game GetGameRoom()
         {
+            // 取得有空位的遊戲
             Game result;
             result = Games.Find(g => g.Player1 == null || g.Player2 == null);
             if (result == null)
@@ -106,19 +106,17 @@ namespace BluffDice
             var message = new { Number = number, Count = count, Round = ++this.Round };
             if (Player1 == player)
             {
-                await Player2.ApponentBluff(message);
-                Player1.SetStatus(null, false, false);
-                await Player1.SendGameMessage(ToClientMessageType.BluffResult);
                 Player2.SetStatus(null, true, true);
+                await Player2.SendGameMessage(ToClientMessageType.ApponentBluff, message);
+                Player1.SetStatus(null, false, false);
+                await Player1.SendGameMessage(ToClientMessageType.BluffSuccess);
             }
             if (Player2 == player)
             {
-                await Player1.ApponentBluff(message);
-                Player2.CanBluff = false;
-                Player2.CanDebluff = false;
-                await Player2.SendGameMessage(ToClientMessageType.BluffResult);
-                Player1.CanBluff = true;
-                Player1.CanDebluff = true;
+                Player1.SetStatus(null, true, true);
+                await Player1.SendGameMessage(ToClientMessageType.ApponentBluff, message);
+                Player2.SetStatus(null, false, false);
+                await Player2.SendGameMessage(ToClientMessageType.BluffSuccess);
             }
         }
 

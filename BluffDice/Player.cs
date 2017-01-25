@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Dynamic;
 
 namespace BluffDice
 {
@@ -79,17 +75,7 @@ namespace BluffDice
             finally { await this.Game.Leave(this); }
         }
 
-        public async Task SendGameMessage(ToClientMessageType type, dynamic message = null)
-        {
-            await this.SendClient(type, message);
-        }
-
-        internal async Task ApponentBluff(dynamic message)
-        {
-            this.CanBluff = true;
-            this.CanDebluff = true;
-            await this.SendClient(ToClientMessageType.ApponentBluff, message);
-        }
+        public async Task SendGameMessage(ToClientMessageType type, dynamic message = null) => await this.SendClient(type, message);
 
         async Task SendClient(ToClientMessageType type, dynamic message = null)
         {
