@@ -7,4 +7,9 @@
 -- 
 
 ## RPS (Rock, Paper, Shotgun)
-猜拳
+猜拳  
+
+--
+
+##BluffDice
+骰子吹牛  
