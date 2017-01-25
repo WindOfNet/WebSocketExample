@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html ng-app="app">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="/lib/angular/angular.js"></script>
+    <script>
+        var app = angular.module('app', []);
+        app.controller('body', function ($scope) {
+            $scope.id = '';
+            $scope.info = '按下按鈕尋找對手';
+            $scope.text = '';
+            $scope.dice = '';
+            $scope.bluffs = [];
+            $scope.connectBtnText = '連線';
+            $scope.isConnect = false;
+            $scope.canRoll = false;
+            $scope.canBluff = false;
+            $scope.canDebluff = false;
+            $scope.gamming = false;
+            $scope.count = 0;
+            $scope.countMin = 0;
+
+            $scope.connect = function () {
+                if ($scope.isConnect) return;
+
+                $scope.reset = function () {
+                    $scope.bluffs = [];
+                    $scope.count = 0;
+                    $scope.countMin = 0;
+                    $scope.text = '';
+                    $scope.canRoll = false;
+                    $scope.canBluff = false;
+                    $scope.canDebluff = false;
+                    $scope.dice = '';
+                    $scope.gamming = false;
+                    $scope.$apply();
+                }
+
+                $scope.connection = new WebSocket('ws://' + window.location.host);
+                $scope.isConnect = true;
+                $scope.connection.onopen = function () {
+                    $scope.isConnect = true;
+                    $scope.reset();
+                }
+                $scope.connection.onclose = function () {
+                    $scope.isConnect = false;
+                }
+                $scope.connection.onmessage = function (e) {
+                    var message = JSON.parse(e.data);
+                    if (message.CanRoll != null) $scope.canRoll = message.CanRoll;
+                    if (message.CanBluff != null) $scope.canBluff = message.CanBluff;
+                    if (message.CanDebluff != null) $scope.canDebluff = message.CanDebluff;
+                    console.log(message);
+                    switch (message.Type) {
+                        case 'PlayerLeave':
+                            $scope.connection.close();
+                            $scope.isConnect = false;
+                            $scope.reset();
+                            $scope.info = '對手中離了, 按下按鈕以重新尋找對手';
+                            $scope.dice = '';
+                            $scope.$apply();
+                            break;
+                        case 'Id':
+                            $scope.id = message.Message;
+                            $scope.info = '正在尋找對手 ...';
+                            $scope.$apply();
+                            break;
+                        case 'WaitRoll':
+                            $scope.info = '遊戲開始!';
+                            $scope.dice = '請按下按鈕擲骰';
+                            $scope.gamming = true;
+                            $scope.$apply();
+                            break;
+                        case 'RollResult':
+                            var card = message.Message;
+                            $scope.card = card;
+                            $scope.text = '等待對手 ...';
+                            $scope.dice = '你的骰子: ' + card;
+                            $scope.$apply();
+                            break;
+                        case 'WaitBluff':
+                            $scope.text = '該你吹牛了';
+                            $scope.$apply();
+                            break;
+                        case 'BluffResult':
+                            $scope.$apply();
+                            break;
+                        case 'BluffNotValid':
+                            $scope.bluffs.splice(-1, 1);
+                            $scope.text = '無效的吹牛, 請重試';
+                            $scope.$apply();
+                            break;
+                        case 'ApponentBluff':
+                            $scope.text = '對手說: ' + message.Message.Count + '個' + message.Message.Number;
+                            $scope.bluffs.push({ Number: message.Message.Number, Count: message.Message.Count, IsMe: false });
+                            $scope.countMin = $scope.count = message.Message.Count;
+                            $scope.$apply();
+                            break;
+                        case 'WinResult':
+                            $scope.connection.close();
+                            $scope.isConnect = false;
+                            var winStr = message.Message.Win ? '你贏了' : '你輸了';
+                            $scope.gamming = false;
+                            $scope.info = '遊戲結束 -- ' + winStr + ', 對手的骰子是: ' + message.Message.AppoentDice;
+                            $scope.connectBtnText = '重新尋找對手';
+                            $scope.$apply();
+                            break;
+                    }
+                }
+            }
+
+            $scope.roll = function () {
+                $scope.canRoll = false;
+                $scope.send('Roll');
+            }
+
+            $scope.bluff = function (n) {
+                $scope.send('Bluff', { Number: n, Count: $scope.count });
+                $scope.bluffs.push({ Number: n, Count: $scope.count, IsMe: true });
+                $scope.text = '你說: ' + $scope.count + '個' + n + ' ... 等待對手';
+            }
+
+            $scope.debluff = function () {
+                $scope.send('Debluff');
+            }
+
+            $scope.send = function (type, value) {
+                var msg = { Type: type, Message: value };
+                $scope.connection.send(JSON.stringify(msg));
+            }
+        });
+    </script>
+</head>
+<body ng-controller="body">
+    <label>{{info}}</label>
+    <br />
+    <label>{{dice}}</label>
+    <br />
+    <label>{{text}}</label>
+    <hr />
+    <button ng-hide="isConnect" ng-click="connect()">{{connectBtnText}}</button>
+    <button ng-show="canRoll" ng-click="roll()">擲骰子</button>
+    <hr />
+    <div ng-show="gamming">
+        <input ng-disabled="!canBluff" type="number" ng-model="count" min="{{countMin}}" />個
+        <button ng-repeat="n in [1, 2, 3, 4, 5, 6]" ng-disabled="!canBluff" ng-click="bluff(n)">{{n}}</button>
+        | <button ng-disabled="!canDebluff" ng-click="debluff()">覺得在吹牛</button>
+    </div>
+    <hr />
+    <div>
+        <label ng-show="bluffs.length > 0">紀錄: </label>
+        <div ng-repeat="n in bluffs">
+            <span>{{$index + 1}}.  {{n.IsMe ? '我說: ' : '對手說: '}}{{n.Count}} 個 {{n.Number}}</span>
+        </div>
+    </div>
+</body>
+</html>
