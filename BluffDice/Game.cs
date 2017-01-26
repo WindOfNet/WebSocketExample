@@ -66,13 +66,13 @@ namespace BluffDice
                 {
                     Player1.SetStatus(null, true, false);
                     Player2.SetStatus(null, false, true);
-                    await Player1.SendGameMessage(ToClientMessageType.WaitBluff);
+                    await Player1.SendGameMessage(ToClientMessageType.WaitFirstBluff);
                 }
                 if (index == 2)
                 {
                     Player1.SetStatus(null, false, true);
                     Player2.SetStatus(null, true, false);
-                    await Player2.SendGameMessage(ToClientMessageType.WaitBluff);
+                    await Player2.SendGameMessage(ToClientMessageType.WaitFirstBluff);
                 }
             }
         }
