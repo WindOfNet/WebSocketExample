@@ -14,57 +14,31 @@ namespace PushNotification
     public class HandleWebSocket
     {
         private readonly RequestDelegate _next;
-        private readonly List<WebSocket> sockets;
 
         public HandleWebSocket(RequestDelegate next)
         {
             _next = next;
-            sockets = new List<WebSocket>();
-
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        Monitor.Enter(sockets);
-
-                        foreach (var ws in sockets)
-                        {
-                            //send server time every seconds
-                            var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
-                            await ws.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-                        }
-                    }
-                    finally { Monitor.Exit(sockets); }
-
-                    Thread.Sleep(1000);
-                }
-            });
         }
 
         public async Task Invoke(HttpContext httpContext)
         {
-            if (!httpContext.WebSockets.IsWebSocketRequest)
+            if (httpContext.WebSockets.IsWebSocketRequest &&
+                httpContext.Request.Path.Value.Equals("/time"))
             {
+                var ws = await httpContext.WebSockets.AcceptWebSocketAsync();
+
+                Task.Run(async () =>
+                {
+                    while (!ws.CloseStatus.HasValue)
+                    {
+                        await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(DateTime.Now.ToString())), WebSocketMessageType.Text, true, CancellationToken.None);
+                        Thread.Sleep(1000);
+                    }
+                }).GetAwaiter();
+                await ws.ReceiveAsync(new ArraySegment<byte>(new byte[1024]), CancellationToken.None);
+            }
+            else
                 await _next(httpContext);
-                return;
-            }
-
-            var ws = await httpContext.WebSockets.AcceptWebSocketAsync();
-
-            sockets.Add(ws);
-
-            while (!ws.CloseStatus.HasValue)
-            {
-                var buffer = new byte[1024 * 4];
-                //handle websocket close (maybe page close, maybe user click close ...)
-                await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            }
-
-            sockets.Remove(ws);
-
-            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
         }
     }
 

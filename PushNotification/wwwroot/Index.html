@@ -18,9 +18,9 @@
         <button id="close">Close</button>
     </div>
 
-    <script>        
+    <script>
         document.getElementById('connect').onclick = function () {
-            var connect = new WebSocket("ws://" + window.location.host);
+            var connect = new WebSocket("ws://" + window.location.host + '/time');
 
             connect.onopen = function () {
                 document.getElementById('state').innerHTML = 'connected';
