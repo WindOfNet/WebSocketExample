@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System.Threading;
 using System.Net.WebSockets;
+using RPS.GameLogic;
 
 namespace RPS
 {
@@ -25,7 +26,7 @@ namespace RPS
             {
                 var ws = await httpContext.WebSockets.AcceptWebSocketAsync();
                 var player = new Player(ws);
-                await player.Listen();
+                await player.HandleWebsocket();
             }
             else
             {
@@ -39,6 +40,7 @@ namespace RPS
     {
         public static IApplicationBuilder UseWebSocketHandle(this IApplicationBuilder builder)
         {
+            builder.UseWebSockets();
             return builder.UseMiddleware<WebSocketHandle>();
         }
     }

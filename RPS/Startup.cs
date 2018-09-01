@@ -28,7 +28,6 @@ namespace RPS
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseWebSockets();
             app.UseWebSocketHandle();
             app.UseFileServer();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace PushNotification
@@ -11,15 +12,15 @@ namespace PushNotification
     {
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+#if DEBUG
                 .UseUrls("http://*:5000")
-                .UseIISIntegration()
+#endif
                 .UseStartup<Startup>()
                 .Build();
-
-            host.Run();
-        }
     }
 }

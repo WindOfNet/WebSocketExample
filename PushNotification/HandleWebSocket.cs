@@ -47,6 +47,7 @@ namespace PushNotification
     {
         public static IApplicationBuilder UseHandleWebSocket(this IApplicationBuilder builder)
         {
+            builder.UseWebSockets();
             return builder.UseMiddleware<HandleWebSocket>();
         }
     }
